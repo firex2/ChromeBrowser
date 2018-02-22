@@ -46,6 +46,7 @@ namespace ChromeBrowser
 
         }
 
+        int counter = 0;
         private void InitializeChromium()
         {
             CefSettings settings = new CefSettings();
@@ -72,53 +73,20 @@ namespace ChromeBrowser
 
         private void button1_Click(object sender, EventArgs e)
         {
-            chromeBrowser.Load("https://www.bing.com");
-            chromeBrowser.FrameLoadEnd += (sender2, args) =>
-            {
-                //Wait for the MainFrame to finish loading
-                if (args.Frame.IsMain)
-                    label1.Text = getTitle();
-            };
+            LoadBing("");
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            chromeBrowser.Load("https://de.wikipedia.org/wiki/Spezial:Zuf%C3%A4llige_Seite");
-            chromeBrowser.FrameLoadEnd += (sender2, args) =>
-            {
-                //Wait for the MainFrame to finish loading
-                if (args.Frame.IsMain)
-                    label1.Text = getTitle();
-            };
-
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            label1.Text = getTitle();
+            LoadWiki();
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            chromeBrowser.Load("https://www.bing.com/search?q=" + searchString);
+            LoadBing(label1.Text);
         }
 
-        private void button5_Click(object sender, EventArgs e)
-        {
-            chromeBrowser.Load("https://de.wikipedia.org/wiki/Spezial:Zuf%C3%A4llige_Seite");
-            chromeBrowser.FrameLoadEnd += (sender2, args) =>
-            {
-                //Wait for the MainFrame to finish loading
-                if (args.Frame.IsMain)
-                {
-                    label1.Text = getTitle();
-                    System.Threading.Thread.Sleep(1000);
-                    chromeBrowser.Load("https://www.bing.com/search?q=" + searchString);
-                }
-            };
-        }
-
-        private string getTitle()
+        private void getTitle()
         {
             string script = "document.title.replace(\" – Wikipedia\", \"\")";
             var task = chromeBrowser.EvaluateScriptAsync(script);
@@ -128,15 +96,27 @@ namespace ChromeBrowser
                 {
                     var response = t.Result;
                     if (response.Success && response.Result != null)
-                        LoadBing(response.Result.ToString());
+                    {
+                        Invoke((Action)(() => label1.Text = response.Result.ToString()));
+                        if(0 != counter)
+                            LoadBing(response.Result.ToString());
+                    }
                 }
             });
-            return "";
         }
 
         Pages PageLoading = Pages.NONE;
         private void button6_Click(object sender, EventArgs e)
         {
+            try
+            {
+                var result = Convert.ToInt32(textBox1.Text);
+                counter = result;
+            }
+            catch (Exception)
+            {
+                return;
+            }
             LoadWiki();
         }
 
@@ -165,6 +145,10 @@ namespace ChromeBrowser
                 case Pages.NONE:
                     break;
                 case Pages.BING:
+                    if (0 == counter)
+                        break;
+                    counter--;
+                    Invoke((Action)(()=>textBox1.Text = counter.ToString()));
                     Thread.Sleep(1000);
                     LoadWiki();
                     break;
@@ -176,7 +160,7 @@ namespace ChromeBrowser
             }
         }
     }
-    
+
     public enum Pages
     {
         NONE,
