@@ -14,25 +14,11 @@ using CefSharp.SchemeHandler;
 using CefSharp.Event;
 using System.Threading;
 
-
-//public class RenderProcessMessageHandler : IRenderProcessMessageHandler
-//{
-//    // Wait for the underlying `Javascript Context` to be created, this is only called for the main frame.
-//    // If the page has no javascript, no context will be created.
-//    void IRenderProcessMessageHandler.OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame)
-//    {
-//        const string script = "document.addEventListener('DOMContentLoaded', function(){ alert('DomLoaded'); });";
-
-//        frame.ExecuteJavaScriptAsync(script);
-//    }
-//}
-
 namespace ChromeBrowser
 {
     public partial class Form1 : Form
     {
-
-        String searchString = "";
+        
         public ChromiumWebBrowser chromeBrowser;
         public Form1()
         {
@@ -115,6 +101,7 @@ namespace ChromeBrowser
             }
             catch (Exception)
             {
+                textBox1.Text = "1";
                 return;
             }
             LoadWiki();
@@ -149,7 +136,7 @@ namespace ChromeBrowser
                         break;
                     counter--;
                     Invoke((Action)(()=>textBox1.Text = counter.ToString()));
-                    Thread.Sleep(1000);
+                    Thread.Sleep(RandomNumber(5000, 15000));
                     LoadWiki();
                     break;
                 case Pages.WIKI:
@@ -159,7 +146,21 @@ namespace ChromeBrowser
                     break;
             }
         }
+
+        private int RandomNumber(int min, int max)
+        {
+            Random random = new Random(DateTime.Now.Millisecond);
+            int rnd = random.Next(min, max);
+            Invoke((Action)(() => label2.Text = rnd.ToString()));
+            return rnd;
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
     }
+
 
     public enum Pages
     {
